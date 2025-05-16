@@ -53,7 +53,11 @@ export const login = async (data: { email: string; password: string }) => {
       console.log("Cookie set successfully");
     } catch (cookieError) {
       console.error("Error setting cookie:", cookieError);
-      return { error: "Login failed - cookie error", details: cookieError.message };
+      // تصحيح التعامل مع نوع unknown
+      return { 
+        error: "Login failed - cookie error", 
+        details: cookieError instanceof Error ? cookieError.message : "Unknown cookie error" 
+      };
     }
 
     return { success: "Login successful", data: userObj };
@@ -62,6 +66,7 @@ export const login = async (data: { email: string; password: string }) => {
     return { error: "Login failed", details: error.message };
   }
 };
+
 
 // review game update
 export const protect = async () => {
