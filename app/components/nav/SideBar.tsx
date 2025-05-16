@@ -59,6 +59,7 @@ const SideBar = () => {
       {/* Mobile menu button - only visible on small screens */}
       <ButtonGame 
         icon={isOpen ? <X size={24} /> : <IoMdMenu />}
+        text={isOpen ? "Close menu" : "Open menu"}
         onClick={toggleSidebar} 
         className="top-16 md:top-20 left-4 z-50 p-2 rounded-full text-white lg:hidden"
         aria-label={isOpen ? "Close menu" : "Open menu"}
