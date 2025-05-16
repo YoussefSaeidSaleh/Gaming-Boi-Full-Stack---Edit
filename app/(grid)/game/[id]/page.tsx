@@ -4,98 +4,64 @@ import SwiperCards from "@/app/components/SwiperCards";
 import Image from "next/image";
 import React from "react";
 
-const page = async ({ params }: { params: { id: string } }) => {
-  const { id } = params;
-  const game = await getGame(id);
+/**
+ * Next.js 15: `params` هو Promise
+ */
+type PageParams = Promise<{ id: string }>;
+
+const Page = async ({ params }: { params: PageParams }) => {
+  // لازم تستنى الـ Promise
+  const { id } = await params;
+
   const {
     screenshots,
     data,
     similar,
-  }: { screenshots: any; data: Game; similar: any } = game;
-  
+  }: { screenshots: any; data: Game; similar: any } = await getGame(id);
+
   return (
-    <div className=" mt-10">
-      <div>
-        <div className=" col-span-4 flex flex-col gap-2">
-          <h1 className=" text-2xl text-white">{data.name}</h1>
-          <div>Rating count : {data.ratings_count}</div>
-          <SwiperCards
-            slidesPerView={1}
-            className=" h-full"
-            items={[
-              ...screenshots.results,
-              data.background_image,
-              data.background_image,
-            ]
-              .filter(Boolean)
-              .map((screenshot) => {
-                return {
-                  card: (
-                    <div className=" rounded-xl overflow-hidden h-[36rem] w-full relative">
-                      <Image
-                        src={screenshot.image || screenshot}
-                        alt={data.name}
-                        fill
-                        className=" object-cover"
-                      />
-                    </div>
-                  ),
-                  src: screenshot.image || screenshot,
-                };
-              })}
-            paginationImages
-          />
-          <p className=" mt-10 col-span-2">{data.description_raw}</p>
-        </div>
-      </div>{" "}
-      <GamesSlider title="Similar Games" games={similar.results}  
-       slidesPerView={3}
-  tabletSlidesPerView={3}
-  mobileSlidesPerView={2}/>
-      {/* <div>
-        {data.ratings.map(({ title, count, percent, id }) => (
-          <div key={id} className="flex items-center gap-2 mb-4">
-            {imageSrc && <img src={imageSrc} alt={title} className="w-8 h-8" />}
-            <div>
-              <h3 className="font-semibold text-lg">{title}</h3>
-              <p>
-                {count} reviews - {percent}%
-              </p>
-            </div>
-          </div>
-        ))}
-      </div> */}
+    <div className="mt-10">
+      <div className="col-span-4 flex flex-col gap-2">
+        <h1 className="text-2xl text-white">{data.name}</h1>
+        <div>Rating count : {data.ratings_count}</div>
+
+        <SwiperCards
+          slidesPerView={1}
+          className="h-full"
+          items={[
+            ...screenshots.results,
+            data.background_image,
+            data.background_image,
+          ]
+            .filter(Boolean)
+            .map((screenshot) => ({
+              card: (
+                <div className="relative h-[36rem] w-full overflow-hidden rounded-xl">
+                  <Image
+                    src={screenshot.image || screenshot}
+                    alt={data.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ),
+              src: screenshot.image || screenshot,
+            }))}
+          paginationImages
+        />
+
+        <p className="col-span-2 mt-10">{data.description_raw}</p>
+      </div>
+
+      <GamesSlider
+        title="Similar Games"
+        games={similar.results}
+        slidesPerView={3}
+        tabletSlidesPerView={3}
+        mobileSlidesPerView={2}
+      />
     </div>
   );
 };
 
-export default page;
-
-/*
-you learned 
-crud operations (wishlist)
-authentication
-authorization and protection
-setting cookies , delete cookies , mutate them 
-frontend optimization debouncing 
-fetching data from server page 
-server actions 
-tanstak query caching 
-sliders with animations framer motion
-resusability 
-filtring 
-searching 
-middlware
-connecting with database 
-handling forms and its submission
-creating mongoose models and connecting with data base
-handling file uploads with cloudinary 
-setting up custom hooks 
-sync local storage with state 
-
-rest :
-review a game
-wishlist in single game page 
-
-reply 
-*/
+export default Page;
