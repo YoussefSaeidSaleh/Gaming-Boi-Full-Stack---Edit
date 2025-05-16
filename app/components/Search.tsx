@@ -16,16 +16,23 @@ const Search = () => {
     isDisabled: search === "",
   });
   const [active, setActive] = useState(false);
-  const outsideREF = useRef(null);
+  const outsideREF = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    window.addEventListener("click", (e) => {
+    const handleClick = (e: MouseEvent) => {
       console.log(e.target, outsideREF.current);
-      if (outsideREF.current && !outsideREF.current.contains(e.target)) {
+      if (outsideREF.current && !outsideREF.current.contains(e.target as Node)) {
         setActive(false);
       }
-    });
-  });
+    };
+
+    window.addEventListener("click", handleClick);
+
+    // تنظيف الـ event listener عندما يتم unmount الـ component
+    return () => {
+      window.removeEventListener("click", handleClick);
+    };
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -37,7 +44,7 @@ const Search = () => {
   return (
     <div
       ref={outsideREF}
-      className="w-full flex relative group items-center gap-2 justify-between px-4 border border-input rounded-xl  md:w-full backgroundSearch"
+      className="w-full flex relative group items-center gap-2 justify-between px-4 border border-input rounded-xl md:w-full backgroundSearch"
     >
       <input
         value={query}
