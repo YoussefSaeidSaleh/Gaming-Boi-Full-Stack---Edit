@@ -12,15 +12,28 @@ const generateToken = async ({ id }: { id: any }) => {
   });
 };
 
+// في وظيفة signup
 export const signup = async (data: any) => {
   try {
     await connect();
+    // تحقق من وجود المستخدم قبل إنشائه
+    const existingUser = await User.findOne({ email: data.email });
+    if (existingUser) {
+      return { error: "User with this email already exists" };
+    }
+    
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await User.create({ ...data, password: hashedPassword });
     return { success: "User created successfully" };
   } catch (error: any) {
-    console.error(error);
-    return { error: "User creation failed", details: error.message };
+    console.error("Signup error:", error);
+    // التعامل مع الخطأ بشكل آمن
+    return { 
+      error: "User creation failed", 
+      details: error && typeof error === 'object' && 'message' in error 
+        ? error.message 
+        : "Unknown error during signup" 
+    };
   }
 };
 
@@ -43,22 +56,22 @@ export const login = async (data: { email: string; password: string }) => {
     console.log("Generated token:", token.substring(0, 10) + "...");
     
     try {
-      cookie.set("token", token, {
-        httpOnly: true,
-        maxAge: JWT_EXPIRES,
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      } );
-      console.log("Cookie set successfully");
-    } catch (cookieError) {
-      console.error("Error setting cookie:", cookieError);
-      // تصحيح التعامل مع نوع unknown
-      return { 
-        error: "Login failed - cookie error", 
-        details: cookieError instanceof Error ? cookieError.message : "Unknown cookie error" 
-      };
-    }
+  cookie.set("token", token, {
+    httpOnly: true,
+    maxAge: JWT_EXPIRES,
+    path: "/",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  } );
+  console.log("Cookie set successfully");
+} catch (cookieError) {
+  console.error("Error setting cookie:", cookieError);
+  // تصحيح التعامل مع نوع unknown
+  return { 
+    error: "Login failed - cookie error", 
+    details: cookieError instanceof Error ? cookieError.message : "Unknown cookie error" 
+  };
+}
 
     return { success: "Login successful", data: userObj };
   } catch (error: any) {
