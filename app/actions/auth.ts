@@ -30,26 +30,35 @@ export const login = async (data: { email: string; password: string }) => {
     const cookie = await cookies();
     const user = await User.findOne({ email: data.email }).select("+password");
     if (!user) {
+      console.log("User not found:", data.email);
       return { error: "User not found" };
     }
     const isMatch = await bcrypt.compare(data.password, user.password);
     if (!isMatch) {
-      return { error: "Incorrect email or password !" }; //not make them know if it is the password or email
+      console.log("Password mismatch for user:", data.email);
+      return { error: "Incorrect email or password !" };
     }
     const userObj = JSON.parse(JSON.stringify(user));
     const token = await generateToken({ id: user._id });
-    console.log(token);
-   cookie.set("token", token, {
-  httpOnly: true,
-  maxAge: JWT_EXPIRES,
-  path: "/",
-  secure: process.env.NODE_ENV === "production", // تفعيل فقط في بيئة الإنتاج
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // استخدام lax في البيئة المحلية
-} );
+    console.log("Generated token:", token.substring(0, 10) + "...");
+    
+    try {
+      cookie.set("token", token, {
+        httpOnly: true,
+        maxAge: JWT_EXPIRES,
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      } );
+      console.log("Cookie set successfully");
+    } catch (cookieError) {
+      console.error("Error setting cookie:", cookieError);
+      return { error: "Login failed - cookie error", details: cookieError.message };
+    }
 
     return { success: "Login successful", data: userObj };
   } catch (error: any) {
-    console.log(error);
+    console.error("Login error:", error);
     return { error: "Login failed", details: error.message };
   }
 };
