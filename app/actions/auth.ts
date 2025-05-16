@@ -39,13 +39,13 @@ export const login = async (data: { email: string; password: string }) => {
     const userObj = JSON.parse(JSON.stringify(user));
     const token = await generateToken({ id: user._id });
     console.log(token);
-    cookie.set("token", token, {
-      httpOnly: true,
-      maxAge: JWT_EXPIRES,
-      sameSite: "none",
-      path: "/",
-      secure: true,
-    });
+   cookie.set("token", token, {
+  httpOnly: true,
+  maxAge: JWT_EXPIRES,
+  path: "/",
+  secure: process.env.NODE_ENV === "production", // تفعيل فقط في بيئة الإنتاج
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // استخدام lax في البيئة المحلية
+} );
 
     return { success: "Login successful", data: userObj };
   } catch (error: any) {
